@@ -1,6 +1,6 @@
-import { json, redirect } from 'react-router-dom';
+import { json, redirect } from "react-router-dom";
 
-import AuthForm from '../components/AuthForm';
+import AuthForm from "../components/AuthForm";
 
 function AuthenticationPage() {
   return <AuthForm />;
@@ -10,23 +10,23 @@ export default AuthenticationPage;
 
 export async function action({ request }) {
   const searchParams = new URL(request.url).searchParams;
-  const mode = searchParams.get('mode') || 'login';
+  const mode = searchParams.get("mode") || "login";
 
-  if (mode !== 'login' && mode !== 'signup') {
-    throw json({ message: 'Unsupported mode.' }, { status: 422 });
+  if (mode !== "login" && mode !== "signup") {
+    throw json({ message: "Unsupported mode." }, { status: 422 });
   }
 
   const data = await request.formData();
   const authData = {
-    email: data.get('email'),
-    password: data.get('password'),
+    email: data.get("email"),
+    password: data.get("password"),
   };
 
   // send request to the backend
-  const response = await fetch('http://localhost:8080/' + mode, {
-    method: 'POST',
+  const response = await fetch("http://localhost:8080/" + mode, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(authData),
   });
@@ -36,16 +36,21 @@ export async function action({ request }) {
   }
 
   if (!response.ok) {
-    throw json({ message: 'Could not authenticate user.' }, { status: 500 });
+    throw json({ message: "Could not authenticate user." }, { status: 500 });
   }
 
-  // manage that token
+  // manage token
   const resData = await response.json();
   const token = resData.token;
 
-  // store the tpken in localStorage
-  localStorage.setItem('token', token);
+  // store the token in localStorage
+  localStorage.setItem("token", token);
+
+  // creates a date that is one hour in the future
+  const expiration = new Date();
+  expiration.setHours(expiration.getHours() + 1);
+  localStorage.setItem("expiration", expiration.toISOString());
 
   // redirecting user to the starting page
-  return redirect('/');
+  return redirect("/");
 }
